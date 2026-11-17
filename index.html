@@ -518,6 +518,21 @@
 <!-- Google Identity Services -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+  firebase.initializeApp({
+    apiKey: "AIzaSyBLHB4AAFgGybiMdCAqpMHZcr8Nda7P3FM",
+    authDomain: "cronograma-empresa-515011.firebaseapp.com",
+    projectId: "cronograma-empresa-515011",
+    storageBucket: "cronograma-empresa-515011.firebasestorage.app",
+    messagingSenderId: "456163510040",
+    appId: "1:456163510040:web:a58d3066d098d169ab006d"
+  });
+  const db = firebase.firestore();
+</script>
+
 <!-- LOGIN SCREEN -->
 <div id="login-screen">
   <div class="login-card">
@@ -748,13 +763,19 @@
   /* Verificar sessão existente ao carregar */
   if (getUser()) showApp();
 
-  /* ── Dados ── */
-  function loadData() {
-    try { return JSON.parse(localStorage.getItem('cronograma_v1') || '{}'); } catch { return {}; }
-  }
+  /* ── Dados (Firestore + cache local) ── */
+  let localData = {};
+
+  db.collection('eventos').doc('dados').onSnapshot(doc => {
+    localData = doc.exists ? (doc.data().calendario || {}) : {};
+    if (getUser()) render();
+  });
+
+  function loadData() { return localData; }
 
   function saveData(data) {
-    try { localStorage.setItem('cronograma_v1', JSON.stringify(data)); } catch {}
+    localData = data;
+    db.collection('eventos').doc('dados').set({ calendario: data }).catch(console.error);
   }
 
   function dateKey(y, m, d) {
