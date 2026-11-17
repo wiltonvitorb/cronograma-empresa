@@ -1,0 +1,932 @@
+<!-- Cronograma Mensal -->
+<title>Cronograma da Empresa</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+
+<style>
+  /*
+   * CONFIGURAÇÃO DO GOOGLE SIGN-IN:
+   * 1. Acesse https://console.cloud.google.com
+   * 2. Crie um projeto > APIs & Services > Credentials > OAuth 2.0 Client ID
+   * 3. Em "Authorized JavaScript origins" adicione o domínio onde a página está hospedada
+   * 4. Copie o Client ID e substitua 'SEU_CLIENT_ID_AQUI' no JavaScript abaixo
+   */
+
+  :root {
+    --bg: #f7f8fc;
+    --surface: #ffffff;
+    --surface-raised: #ffffff;
+    --border: #e2e6f0;
+    --fg: #1a1d2e;
+    --fg-muted: #6b7280;
+    --fg-faint: #9ca3af;
+    --accent: #3b5bdb;
+    --accent-soft: #eef1fd;
+    --accent-hover: #2f4ac0;
+    --ok: #10b981;
+    --ok-soft: #ecfdf5;
+    --warn: #f59e0b;
+    --warn-soft: #fffbeb;
+    --danger: #ef4444;
+    --shadow: 0 1px 4px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+    --radius: 12px;
+    --font-head: 'Space Grotesk', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1117; --surface: #1a1d2e; --surface-raised: #222537;
+      --border: #2d3148; --fg: #e8eaf6; --fg-muted: #9ca3af; --fg-faint: #6b7280;
+      --accent: #6479f8; --accent-soft: #1e2340; --accent-hover: #7b8df9;
+      --ok: #34d399; --ok-soft: #0d2b22; --warn: #fbbf24; --warn-soft: #2d2000;
+      --danger: #f87171;
+      --shadow: 0 1px 4px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1117; --surface: #1a1d2e; --surface-raised: #222537;
+    --border: #2d3148; --fg: #e8eaf6; --fg-muted: #9ca3af; --fg-faint: #6b7280;
+    --accent: #6479f8; --accent-soft: #1e2340; --accent-hover: #7b8df9;
+    --ok: #34d399; --ok-soft: #0d2b22; --warn: #fbbf24; --warn-soft: #2d2000;
+    --danger: #f87171;
+    --shadow: 0 1px 4px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--fg);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+
+  /* ───── LOGIN SCREEN ───── */
+  #login-screen {
+    min-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-block: 40px;
+  }
+
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: 0 8px 40px rgba(0,0,0,.12);
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    text-align: center;
+  }
+
+  .login-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--accent-soft);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+  }
+
+  .login-card h1 {
+    font-family: var(--font-head);
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--fg);
+    line-height: 1.25;
+  }
+
+  .login-card p {
+    font-size: .875rem;
+    color: var(--fg-muted);
+    line-height: 1.6;
+    max-width: 280px;
+  }
+
+  .google-btn-wrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Fallback when Google script isn't available */
+  .fallback-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .fallback-label {
+    font-size: .8125rem;
+    color: var(--fg-muted);
+    text-align: left;
+  }
+
+  .fallback-input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: .875rem;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .fallback-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,91,219,.12); }
+
+  .fallback-btn {
+    width: 100%;
+    padding: 11px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-family: var(--font-body);
+    font-size: .9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .fallback-btn:hover { background: var(--accent-hover); }
+
+  .login-footer {
+    font-size: .75rem;
+    color: var(--fg-faint);
+    line-height: 1.5;
+  }
+
+  /* ───── APP SCREEN ───── */
+  #app-screen {
+    padding-block: 24px;
+  }
+
+  .app {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .header-left h1 {
+    font-family: var(--font-head);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .header-left p {
+    font-size: .8125rem;
+    color: var(--fg-muted);
+    margin-top: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .user-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px 6px 6px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: .8125rem;
+    font-weight: 500;
+    color: var(--fg);
+  }
+
+  .user-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--accent-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .75rem;
+    font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: .875rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background .15s, color .15s;
+  }
+
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-hover); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--fg-muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+
+  .btn-logout {
+    background: transparent;
+    color: var(--fg-faint);
+    border: 1px solid var(--border);
+    font-size: .8rem;
+    padding: 6px 10px;
+  }
+  .btn-logout:hover { background: #fee2e2; color: var(--danger); border-color: var(--danger); }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .btn-logout:hover { background: #3b1212; }
+  }
+  :root[data-theme="dark"] .btn-logout:hover { background: #3b1212; }
+
+  /* Month navigator */
+  .month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    box-shadow: var(--shadow);
+  }
+
+  .month-label {
+    font-family: var(--font-head);
+    font-size: 1.125rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    min-width: 200px;
+    text-align: center;
+  }
+
+  .nav-btn {
+    width: 34px; height: 34px;
+    border-radius: 8px; border: 1px solid var(--border);
+    background: transparent; color: var(--fg-muted);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background .15s, color .15s;
+  }
+  .nav-btn:hover { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+
+  .today-btn {
+    font-family: var(--font-body); font-size: .8125rem; font-weight: 500;
+    padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border);
+    background: transparent; color: var(--fg-muted); cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .today-btn:hover { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+
+  /* Calendar grid */
+  .calendar-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--border); }
+
+  .weekday {
+    padding: 10px 4px; text-align: center;
+    font-size: .75rem; font-weight: 600; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--fg-muted);
+  }
+  .weekday.weekend { color: var(--fg-faint); }
+
+  .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+
+  .day-cell {
+    min-height: 90px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    padding: 8px; cursor: pointer; transition: background .12s;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .day-cell:nth-child(7n) { border-right: none; }
+  .day-cell:hover { background: var(--accent-soft); }
+  .day-cell.other-month { opacity: .4; pointer-events: none; }
+
+  .day-cell.today .day-num {
+    background: var(--accent); color: #fff; border-radius: 50%;
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  }
+
+  .day-cell.weekend .day-num { color: var(--fg-faint); }
+  .day-cell.today.weekend .day-num { color: #fff; }
+
+  .day-num {
+    font-family: var(--font-head); font-size: .9375rem; font-weight: 600; line-height: 1;
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; color: var(--fg);
+  }
+
+  .day-events { display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
+
+  .event-chip {
+    font-size: .6875rem; font-weight: 500; padding: 2px 6px;
+    border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4;
+  }
+  .event-chip.type-reuniao { background: var(--accent-soft); color: var(--accent); }
+  .event-chip.type-prazo   { background: var(--warn-soft);   color: var(--warn); }
+  .event-chip.type-evento  { background: var(--ok-soft);     color: var(--ok); }
+  .event-chip.type-outro   { background: #f3f4f6; color: var(--fg-muted); }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .event-chip.type-outro { background: #2a2d3a; }
+  }
+  :root[data-theme="dark"] .event-chip.type-outro { background: #2a2d3a; }
+
+  .more-label { font-size: .625rem; color: var(--fg-faint); padding-left: 6px; }
+
+  /* Modal */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 100;
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+    backdrop-filter: blur(2px);
+  }
+  .overlay[hidden] { display: none; }
+
+  .modal {
+    background: var(--surface-raised); border: 1px solid var(--border);
+    border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,.2);
+    width: 100%; max-width: 420px; overflow: hidden;
+    animation: modal-in .18s ease-out;
+  }
+
+  @keyframes modal-in {
+    from { opacity: 0; transform: translateY(12px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .modal-header {
+    padding: 20px 20px 0;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  }
+
+  .modal-title { font-family: var(--font-head); font-size: 1rem; font-weight: 600; line-height: 1.3; }
+  .modal-date  { font-size: .8125rem; color: var(--fg-muted); margin-top: 2px; text-transform: capitalize; }
+
+  .close-btn {
+    width: 30px; height: 30px; border-radius: 6px; border: none; background: transparent;
+    color: var(--fg-muted); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: background .12s;
+  }
+  .close-btn:hover { background: var(--border); }
+
+  .modal-body { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 14px; }
+
+  .events-list {
+    display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto;
+  }
+
+  .event-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; border-radius: 10px;
+    background: var(--bg); border: 1px solid var(--border);
+  }
+
+  .event-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .event-dot.type-reuniao { background: var(--accent); }
+  .event-dot.type-prazo   { background: var(--warn); }
+  .event-dot.type-evento  { background: var(--ok); }
+  .event-dot.type-outro   { background: var(--fg-faint); }
+
+  .event-info { flex: 1; min-width: 0; }
+  .event-name { font-size: .875rem; font-weight: 500; line-height: 1.3; }
+  .event-meta { font-size: .75rem; color: var(--fg-muted); margin-top: 1px; }
+
+  .event-del {
+    width: 24px; height: 24px; border-radius: 4px; border: none; background: transparent;
+    color: var(--fg-faint); cursor: pointer; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: background .12s, color .12s;
+  }
+  .event-del:hover { background: #fee2e2; color: var(--danger); }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .event-del:hover { background: #3b1212; }
+  }
+  :root[data-theme="dark"] .event-del:hover { background: #3b1212; }
+
+  .empty-day { text-align: center; color: var(--fg-faint); font-size: .8125rem; padding: 12px 0; }
+
+  .add-form {
+    border-top: 1px solid var(--border); padding-top: 14px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+
+  .form-label { font-size: .8125rem; font-weight: 500; color: var(--fg-muted); display: block; margin-bottom: 4px; }
+
+  .form-input, .form-select {
+    width: 100%; padding: 9px 12px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--fg);
+    font-family: var(--font-body); font-size: .875rem; outline: none; transition: border-color .15s;
+  }
+  .form-input:focus, .form-select:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,91,219,.12);
+  }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  /* Summary + Legend */
+  .summary { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .summary-pill {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 999px;
+    font-size: .8125rem; font-weight: 500; border: 1px solid transparent;
+  }
+  .summary-pill .count {
+    font-family: var(--font-head); font-size: 1rem; font-weight: 700;
+    font-variant-numeric: tabular-nums; line-height: 1;
+  }
+  .summary-pill.all { background: var(--accent-soft); color: var(--accent); border-color: rgba(59,91,219,.2); }
+  .summary-pill.reu { background: var(--accent-soft); color: var(--accent); border-color: rgba(59,91,219,.15); }
+  .summary-pill.pra { background: var(--warn-soft);   color: var(--warn);   border-color: rgba(245,158,11,.2); }
+  .summary-pill.eve { background: var(--ok-soft);     color: var(--ok);     border-color: rgba(16,185,129,.2); }
+
+  .legend {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 12px 16px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+  .legend-title { font-size: .75rem; font-weight: 600; color: var(--fg-muted); text-transform: uppercase; letter-spacing: .05em; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: .8125rem; color: var(--fg-muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  @media (max-width: 600px) {
+    .day-cell { min-height: 60px; padding: 5px; }
+    .event-chip { display: none; }
+    .day-cell.has-events::after {
+      content: ''; display: block; width: 6px; height: 6px;
+      border-radius: 50%; background: var(--accent); margin: 2px auto 0;
+    }
+    .month-label { font-size: .9375rem; min-width: 140px; }
+    .login-card { padding: 28px 20px; }
+  }
+</style>
+
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-icon">
+      <svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+        <rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Cronograma da Empresa</h1>
+      <p>Entre com sua conta Google para acessar e gerenciar os compromissos do time.</p>
+    </div>
+
+    <!-- Google Sign-In button (rendered by GSI) -->
+    <div class="google-btn-wrap" id="google-btn-container">
+      <div id="g_id_onload"
+           data-client_id="SEU_CLIENT_ID_AQUI"
+           data-callback="handleGoogleSignIn"
+           data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+           data-type="standard"
+           data-shape="rectangular"
+           data-theme="outline"
+           data-text="signin_with"
+           data-size="large"
+           data-locale="pt-BR"
+           data-width="280">
+      </div>
+    </div>
+
+    <!-- Fallback: shown if Google script doesn't load (ex: CSP, sem internet) -->
+    <div class="fallback-form" id="fallback-form" style="display:none">
+      <label class="fallback-label" for="fallback-name">Seu nome</label>
+      <input class="fallback-input" id="fallback-name" type="text" placeholder="Nome Sobrenome" autocomplete="name">
+      <label class="fallback-label" for="fallback-email">E-mail</label>
+      <input class="fallback-input" id="fallback-email" type="email" placeholder="voce@empresa.com" autocomplete="email">
+      <button class="fallback-btn" onclick="fallbackLogin()">Entrar</button>
+    </div>
+
+    <p class="login-footer">Acesso restrito a colaboradores autorizados.</p>
+  </div>
+</div>
+
+<!-- APP SCREEN (hidden until login) -->
+<div id="app-screen" hidden>
+  <div class="app">
+    <div class="header">
+      <div class="header-left">
+        <h1>Cronograma da Empresa</h1>
+        <p id="subheading">Clique em um dia para adicionar compromissos</p>
+      </div>
+      <div class="header-right">
+        <div class="user-chip" id="user-chip">
+          <div class="user-avatar" id="user-avatar"></div>
+          <span id="user-name"></span>
+        </div>
+        <button class="btn btn-primary" onclick="openAddQuick()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          Novo compromisso
+        </button>
+        <button class="btn btn-logout" onclick="logout()">Sair</button>
+      </div>
+    </div>
+
+    <div class="summary" id="summary-bar"></div>
+
+    <div class="month-nav">
+      <button class="nav-btn" id="prev-btn" title="Mês anterior">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="month-label" id="month-label"></span>
+        <button class="today-btn" id="today-btn">Hoje</button>
+      </div>
+      <button class="nav-btn" id="next-btn" title="Próximo mês">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+
+    <div class="calendar-wrap">
+      <div class="weekdays" id="weekdays"></div>
+      <div class="days-grid" id="days-grid"></div>
+    </div>
+
+    <div class="legend">
+      <span class="legend-title">Legenda:</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--accent)"></span>Reunião</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--warn)"></span>Prazo</span>
+      <span class="legend-item"><span class="legend dot" style="background:var(--ok)"></span>Evento</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--fg-faint)"></span>Outro</span>
+    </div>
+  </div>
+</div>
+
+<!-- Day modal -->
+<div class="overlay" id="day-modal" hidden role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-title">Compromissos</div>
+        <div class="modal-date" id="modal-date"></div>
+      </div>
+      <button class="close-btn" onclick="closeModal()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="events-list" id="modal-events"></div>
+      <div class="add-form">
+        <div>
+          <label class="form-label" for="ev-title">Descrição</label>
+          <input class="form-input" id="ev-title" type="text" placeholder="Ex: Reunião de equipe" maxlength="80">
+        </div>
+        <div class="form-row">
+          <div>
+            <label class="form-label" for="ev-time">Horário</label>
+            <input class="form-input" id="ev-time" type="time">
+          </div>
+          <div>
+            <label class="form-label" for="ev-type">Tipo</label>
+            <select class="form-select" id="ev-type">
+              <option value="reuniao">Reunião</option>
+              <option value="prazo">Prazo</option>
+              <option value="evento">Evento</option>
+              <option value="outro">Outro</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+          <button class="btn btn-primary" onclick="addEvent()">Adicionar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  /* ── Configuração ── */
+  const GOOGLE_CLIENT_ID = 'SEU_CLIENT_ID_AQUI'; // ← substitua pelo seu Client ID
+
+  /* ── Constantes ── */
+  const DAYS_PT   = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                     'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const TYPE_LABELS = { reuniao:'Reunião', prazo:'Prazo', evento:'Evento', outro:'Outro' };
+
+  const today = new Date();
+  let viewYear  = today.getFullYear();
+  let viewMonth = today.getMonth();
+  let activeDate = null;
+
+  /* ── Detectar se Google GSI carregou ── */
+  window.addEventListener('load', () => {
+    if (!window.google) {
+      // Google script não carregou (CSP ou sem internet) → mostrar fallback
+      document.getElementById('google-btn-container').style.display = 'none';
+      document.getElementById('fallback-form').style.display = 'flex';
+    }
+  });
+
+  /* ── Google Sign-In callback ── */
+  window.handleGoogleSignIn = function(response) {
+    try {
+      // Decodificar JWT (uso interno — não enviar dados a servidor externo)
+      const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      setUser({ name: payload.name, email: payload.email, picture: payload.picture || '' });
+      showApp();
+    } catch(e) {
+      alert('Erro ao autenticar. Tente novamente.');
+    }
+  };
+
+  /* ── Fallback login ── */
+  window.fallbackLogin = function() {
+    const name  = document.getElementById('fallback-name').value.trim();
+    const email = document.getElementById('fallback-email').value.trim();
+    if (!name) { document.getElementById('fallback-name').focus(); return; }
+    setUser({ name, email, picture: '' });
+    showApp();
+  };
+
+  document.getElementById('fallback-name').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('fallback-email').focus();
+  });
+  document.getElementById('fallback-email').addEventListener('keydown', e => {
+    if (e.key === 'Enter') fallbackLogin();
+  });
+
+  /* ── Sessão ── */
+  function setUser(u) {
+    try { sessionStorage.setItem('crono_user', JSON.stringify(u)); } catch {}
+  }
+
+  function getUser() {
+    try { return JSON.parse(sessionStorage.getItem('crono_user') || 'null'); } catch { return null; }
+  }
+
+  window.logout = function() {
+    try { sessionStorage.removeItem('crono_user'); } catch {}
+    if (window.google && window.google.accounts) {
+      window.google.accounts.id.disableAutoSelect();
+    }
+    document.getElementById('app-screen').setAttribute('hidden','');
+    document.getElementById('login-screen').removeAttribute('hidden');
+  };
+
+  function showApp() {
+    const user = getUser();
+    if (!user) return;
+
+    // Atualizar chip do usuário
+    document.getElementById('user-name').textContent = user.name.split(' ')[0];
+    const av = document.getElementById('user-avatar');
+    if (user.picture) {
+      av.innerHTML = `<img src="${escHtml(user.picture)}" alt="${escHtml(user.name)}">`;
+    } else {
+      av.textContent = user.name.charAt(0).toUpperCase();
+    }
+
+    document.getElementById('login-screen').setAttribute('hidden','');
+    document.getElementById('app-screen').removeAttribute('hidden');
+    render();
+  }
+
+  /* Verificar sessão existente ao carregar */
+  if (getUser()) showApp();
+
+  /* ── Dados ── */
+  function loadData() {
+    try { return JSON.parse(localStorage.getItem('cronograma_v1') || '{}'); } catch { return {}; }
+  }
+
+  function saveData(data) {
+    try { localStorage.setItem('cronograma_v1', JSON.stringify(data)); } catch {}
+  }
+
+  function dateKey(y, m, d) {
+    return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+
+  /* ── Render ── */
+  function render() {
+    renderWeekdays();
+    renderGrid();
+    renderSummary();
+    renderMonthLabel();
+  }
+
+  function renderWeekdays() {
+    document.getElementById('weekdays').innerHTML = DAYS_PT.map((d,i) =>
+      `<div class="weekday${i===0||i===6?' weekend':''}">${d}</div>`
+    ).join('');
+  }
+
+  function renderMonthLabel() {
+    document.getElementById('month-label').textContent = `${MONTHS_PT[viewMonth]} ${viewYear}`;
+  }
+
+  function renderGrid() {
+    const data = loadData();
+    const grid = document.getElementById('days-grid');
+    const first = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+    const prevDays = new Date(viewYear, viewMonth, 0).getDate();
+
+    let cells = '';
+    for (let i = first - 1; i >= 0; i--)
+      cells += `<div class="day-cell other-month"><span class="day-num">${prevDays-i}</span></div>`;
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = dateKey(viewYear, viewMonth, d);
+      const events = data[key] || [];
+      const dow = (first + d - 1) % 7;
+      const isToday = viewYear === today.getFullYear() && viewMonth === today.getMonth() && d === today.getDate();
+      const isWeekend = dow === 0 || dow === 6;
+
+      let cls = 'day-cell';
+      if (isToday) cls += ' today';
+      if (isWeekend) cls += ' weekend';
+      if (events.length) cls += ' has-events';
+
+      let evHtml = '';
+      events.slice(0,2).forEach(ev => {
+        const label = ev.time ? `${ev.time} · ${ev.title}` : ev.title;
+        evHtml += `<div class="event-chip type-${ev.type}" title="${escHtml(ev.title)}">${escHtml(label)}</div>`;
+      });
+      if (events.length > 2) evHtml += `<span class="more-label">+${events.length-2} mais</span>`;
+
+      cells += `<div class="${cls}" onclick="openDay('${key}',${d})">
+        <span class="day-num">${d}</span>
+        <div class="day-events">${evHtml}</div>
+      </div>`;
+    }
+
+    const total = first + daysInMonth;
+    const trailing = total % 7 === 0 ? 0 : 7 - (total % 7);
+    for (let i = 1; i <= trailing; i++)
+      cells += `<div class="day-cell other-month"><span class="day-num">${i}</span></div>`;
+
+    grid.innerHTML = cells;
+  }
+
+  function renderSummary() {
+    const data = loadData();
+    let all=0, reu=0, pra=0, eve=0;
+    Object.keys(data).forEach(k => {
+      const y = parseInt(k.slice(0,4)), m = parseInt(k.slice(5,7)) - 1;
+      if (y === viewYear && m === viewMonth)
+        (data[k]||[]).forEach(ev => { all++; if(ev.type==='reuniao')reu++; else if(ev.type==='prazo')pra++; else if(ev.type==='evento')eve++; });
+    });
+    const bar = document.getElementById('summary-bar');
+    if (!all) { bar.innerHTML=''; return; }
+    bar.innerHTML = `
+      <div class="summary-pill all"><span class="count">${all}</span>${all===1?'compromisso':'compromissos'}</div>
+      ${reu?`<div class="summary-pill reu"><span class="count">${reu}</span>${reu===1?'reunião':'reuniões'}</div>`:''}
+      ${pra?`<div class="summary-pill pra"><span class="count">${pra}</span>${pra===1?'prazo':'prazos'}</div>`:''}
+      ${eve?`<div class="summary-pill eve"><span class="count">${eve}</span>${eve===1?'evento':'eventos'}</div>`:''}`;
+  }
+
+  /* ── Modal ── */
+  window.openDay = function(key, d) {
+    activeDate = key;
+    const [y, m] = key.split('-').map(Number);
+    const dow = new Date(y, m-1, d).getDay();
+    document.getElementById('modal-date').textContent =
+      `${DAYS_PT[dow]}, ${d} de ${MONTHS_PT[m-1]} de ${y}`;
+    document.getElementById('ev-title').value = '';
+    document.getElementById('ev-time').value = '';
+    renderModalEvents();
+    document.getElementById('day-modal').removeAttribute('hidden');
+    setTimeout(() => document.getElementById('ev-title').focus(), 80);
+  };
+
+  window.openAddQuick = function() {
+    const d = today.getDate();
+    openDay(dateKey(today.getFullYear(), today.getMonth(), d), d);
+  };
+
+  window.closeModal = function() {
+    document.getElementById('day-modal').setAttribute('hidden','');
+    activeDate = null;
+  };
+
+  function renderModalEvents() {
+    const data = loadData();
+    const events = (data[activeDate]||[]).slice().sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    const list = document.getElementById('modal-events');
+    if (!events.length) { list.innerHTML='<div class="empty-day">Nenhum compromisso neste dia</div>'; return; }
+    list.innerHTML = events.map((ev,i) => `
+      <div class="event-item">
+        <div class="event-dot type-${ev.type}"></div>
+        <div class="event-info">
+          <div class="event-name">${escHtml(ev.title)}</div>
+          <div class="event-meta">${ev.time?ev.time+' · ':''}${TYPE_LABELS[ev.type]||ev.type}</div>
+        </div>
+        <button class="event-del" onclick="deleteEvent(${i})">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+        </button>
+      </div>`).join('');
+  }
+
+  window.addEvent = function() {
+    const title = document.getElementById('ev-title').value.trim();
+    if (!title) { document.getElementById('ev-title').focus(); return; }
+    const time = document.getElementById('ev-time').value;
+    const type = document.getElementById('ev-type').value;
+    const data = loadData();
+    if (!data[activeDate]) data[activeDate] = [];
+    data[activeDate].push({ title, time, type });
+    saveData(data);
+    document.getElementById('ev-title').value = '';
+    document.getElementById('ev-time').value = '';
+    renderModalEvents();
+    renderGrid();
+    renderSummary();
+  };
+
+  window.deleteEvent = function(idx) {
+    const data = loadData();
+    if (data[activeDate]) {
+      const sorted = data[activeDate].slice().sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+      const toRemove = sorted[idx];
+      const ri = data[activeDate].findIndex(e => e.title===toRemove.title&&e.time===toRemove.time&&e.type===toRemove.type);
+      if (ri !== -1) data[activeDate].splice(ri, 1);
+      if (!data[activeDate].length) delete data[activeDate];
+      saveData(data);
+    }
+    renderModalEvents(); renderGrid(); renderSummary();
+  };
+
+  /* ── Navegação ── */
+  document.getElementById('prev-btn').addEventListener('click', () => {
+    viewMonth--; if (viewMonth<0){viewMonth=11;viewYear--;} render();
+  });
+  document.getElementById('next-btn').addEventListener('click', () => {
+    viewMonth++; if (viewMonth>11){viewMonth=0;viewYear++;} render();
+  });
+  document.getElementById('today-btn').addEventListener('click', () => {
+    viewYear=today.getFullYear(); viewMonth=today.getMonth(); render();
+  });
+  document.getElementById('day-modal').addEventListener('click', function(e){ if(e.target===this)closeModal(); });
+  document.getElementById('ev-title').addEventListener('keydown', e=>{ if(e.key==='Enter')addEvent(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape')closeModal(); });
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+})();
+</script>
